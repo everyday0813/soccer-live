@@ -2,6 +2,7 @@ services:
   soccer-live:
     build: .
     image: soccer-live:latest
+    networks: [soccer-net]
     container_name: soccer-live
     restart: unless-stopped
     ports:
@@ -26,3 +27,10 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  soccer-net:
+    name: soccer-net
+    ipam:
+      config:
+        - subnet: 10.88.21.0/24
