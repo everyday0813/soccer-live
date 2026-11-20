@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="km">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>គ្រប់គ្រង · បាល់ទាត់ផ្ទាល់</title>
+  <meta name="theme-color" content="#0b0f14">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+Khmer:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="page-admin">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">បាល់ទាត់ផ្ទាល់</span>
+      </a>
+      <nav class="nav">
+        <a href="/">ផ្ទះ</a>
+        <a href="/admin" aria-current="page">គ្រប់គ្រង</a>
+        <button type="button" class="btn btn-ghost btn-sm" id="logout" hidden lang="en">Log out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container admin">
+    <!-- Login -->
+    <section class="card login-card" id="login" hidden>
+      <h1 class="section-title">គ្រប់គ្រង</h1>
+      <form id="login-form" autocomplete="on">
+        <label class="field">
+          <span lang="en">Password</span>
+          <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit" class="btn btn-primary" lang="en">Log in</button>
+        <p class="form-msg" id="login-msg" role="alert"></p>
+      </form>
+    </section>
+
+    <!-- Dashboard -->
+    <div id="dashboard" hidden>
+      <p class="notice" lang="en">
+        Only add streams that you own or are licensed to broadcast. Do not link to unauthorised re-broadcasts.
+      </p>
+
+      <section class="card">
+        <div class="section-head">
+          <h2 class="section-title">ផ្ទាំងពាណិជ្ជកម្ម</h2>
+          <label class="toggle">
+            <input type="checkbox" id="show-ph">
+            <span class="toggle-ui" aria-hidden="true"></span>
+            <span lang="en">Show placeholders for empty slots</span>
+          </label>
+        </div>
+        <div class="slot-admin-grid" id="slot-admin"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2 class="section-title">ការប្រកួត <span class="count-pill" id="m-count">0</span></h2>
+          <input type="search" id="m-filter" class="filter-input" placeholder="Filter…" lang="en" aria-label="Filter">
+        </div>
+        <div id="admin-matches" class="admin-matches"></div>
+      </section>
+    </div>
+  </main>
+
+  <template id="slot-template">
+    <form class="slot-card" novalidate>
+      <div class="slot-card-head">
+        <strong class="slot-title"></strong>
+        <span class="slot-size mono"></span>
+      </div>
+      <div class="slot-preview"></div>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="type" value="image" checked> <span lang="en">Image</span></label>
+        <label><input type="radio" name="type" value="html"> <span lang="en">HTML code</span></label>
+      </div>
+      <div class="type-image">
+        <label class="field"><span lang="en">Image (PNG/JPG/GIF/WebP, ≤ 3 MB)</span>
+          <input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+        <label class="field"><span lang="en">Link URL</span>
+          <input type="url" name="linkUrl" placeholder="https://"></label>
+      </div>
+      <div class="type-html" hidden>
+        <label class="field"><span lang="en">HTML ad code</span>
+          <textarea name="html" rows="5" spellcheck="false" class="mono"></textarea></label>
+      </div>
+      <div class="form-row">
+        <span class="form-msg" role="status"></span>
+        <button type="button" class="btn btn-ghost btn-sm slot-delete" lang="en">Delete</button>
+        <button type="submit" class="btn btn-primary btn-sm">រក្សាទុក</button>
+      </div>
+    </form>
+  </template>
+
+  <script src="/js/common.js" defer></script>
+  <script src="/js/admin.js" defer></script>
+</body>
+</html>

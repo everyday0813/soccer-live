@@ -1,0 +1,22 @@
+{
+  "name": "soccer-live",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Khmer football livestream site (បាល់ទាត់ផ្ទាល់)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "smoke": "bash scripts/smoke.sh"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "better-sqlite3": "^13.2.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.5",
+    "multer": "^2.5.0"
+  }
+}
