@@ -27,7 +27,7 @@
   }
 
   function errorText(r) {
-    if (r.status === 401) return 'Session expired';
+    if (r.status === 401) return T.sessionExpired;
     return (r.data && r.data.error) || ('HTTP ' + r.status);
   }
 
@@ -37,7 +37,7 @@
     var pw = document.getElementById('password');
     SL.getJSON('/api/admin/login', { method: 'POST', body: { password: pw.value } }).then(function (r) {
       if (r.ok) { pw.value = ''; loadState(); return; }
-      showLogin(r.status === 429 ? 'Too many attempts — try again in 15 minutes.' : 'Wrong password.');
+      showLogin(r.status === 429 ? T.tooManyAttempts : T.loginFailed);
     });
   });
 
@@ -56,6 +56,7 @@
       document.getElementById('show-ph').checked = !!state.settings.showAdPlaceholders;
       renderSlots();
       renderMatches();
+      loadComments();
     });
   }
 
@@ -134,7 +135,7 @@
       });
 
       form.querySelector('.slot-delete').addEventListener('click', function () {
-        if (!confirm('Delete slot ' + n + '?')) return;
+        if (!confirm(T.deleteSlot + ' ' + n + '?')) return;
         SL.getJSON('/api/admin/banner/' + n, { method: 'DELETE' }).then(function (r) {
           if (r.status === 401) return showLogin('');
           if (!r.ok) return flash(msg, errorText(r), false);
@@ -202,6 +203,75 @@
   filterEl.addEventListener('input', function () {
     clearTimeout(filterTimer);
     filterTimer = setTimeout(renderMatches, 120);
+  });
+
+  // -------------------------------------------------------------- moderation
+  // Built with DOM APIs + textContent only: comment text is untrusted.
+  var modList = document.getElementById('mod-list');
+  var modCount = document.getElementById('c-count');
+  var modMsg = document.getElementById('c-msg');
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function syncModEmpty() {
+    var rows = modList.querySelectorAll('.mod-row').length;
+    modCount.textContent = String(rows);
+    var empty = modList.querySelector('.mod-empty');
+    if (!rows && !empty) modList.appendChild(el('li', 'mod-empty', T.noComments));
+    if (rows && empty) empty.remove();
+  }
+
+  function commentRow(c) {
+    var li = el('li', 'mod-row');
+    li.dataset.id = String(c.id);
+    var main = el('div', 'c-main');
+    var meta = el('div', 'c-meta');
+    meta.appendChild(el('span', 'c-name', c.name));
+    var time = el('time', 'c-time', SL.timeAgo(c.createdAt));
+    time.dateTime = c.createdAt;
+    meta.appendChild(time);
+    main.appendChild(meta);
+    var link = el('a', 'mod-match', c.matchLabel);
+    link.href = '/match/' + encodeURIComponent(c.matchId);
+    link.target = '_blank';
+    link.rel = 'noopener';
+    main.appendChild(link);
+    main.appendChild(el('p', 'c-body', c.body));
+    li.appendChild(main);
+    var btn = el('button', 'btn btn-ghost btn-sm mod-del', T.del);
+    btn.type = 'button';
+    li.appendChild(btn);
+    return li;
+  }
+
+  function loadComments() {
+    return SL.getJSON('/api/admin/comments?limit=50').then(function (r) {
+      if (r.status === 401) return showLogin('');
+      if (!r.ok) return flash(modMsg, errorText(r), false);
+      modList.textContent = '';
+      (r.data.comments || []).forEach(function (c) { modList.appendChild(commentRow(c)); });
+      syncModEmpty();
+    });
+  }
+
+  document.getElementById('c-refresh').addEventListener('click', loadComments);
+
+  modList.addEventListener('click', function (e) {
+    var btn = e.target.closest('.mod-del');
+    if (!btn) return;
+    var row = btn.closest('.mod-row');
+    btn.disabled = true;
+    SL.getJSON('/api/admin/comment/' + encodeURIComponent(row.dataset.id), { method: 'DELETE' }).then(function (r) {
+      if (r.status === 401) return showLogin('');
+      if (!r.ok) { btn.disabled = false; return flash(modMsg, errorText(r), false); }
+      row.remove();
+      syncModEmpty();
+    }, function () { btn.disabled = false; });
   });
 
   loadState();

@@ -138,6 +138,25 @@
   tabs.forEach(function (t) { t.addEventListener('click', function () { setFilter(t.dataset.filter, true); }); });
   setFilter((location.hash || '').slice(1), false);
 
+  // Edge fade on the tab row: only when it overflows and is not scrolled to the end.
+  var tabRow = document.querySelector('.tabs');
+  function syncTabFade() {
+    var over = tabRow.scrollWidth > tabRow.clientWidth + 1;
+    tabRow.classList.toggle('is-overflowing', over);
+    tabRow.classList.toggle('at-end', over && tabRow.scrollLeft + tabRow.clientWidth >= tabRow.scrollWidth - 1);
+  }
+  if (tabRow) {
+    tabRow.addEventListener('scroll', syncTabFade, { passive: true });
+    window.addEventListener('resize', syncTabFade);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(syncTabFade);
+      ro.observe(tabRow);
+      tabs.forEach(function (t) { ro.observe(t); }); // tab counts change the row width
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncTabFade);
+    syncTabFade();
+  }
+
   document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
 
   load();

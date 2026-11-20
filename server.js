@@ -445,6 +445,26 @@ app.post('/api/admin/settings', requireAdmin, (req, res) => {
   res.json({ ok: true, settings: { showAdPlaceholders: v } });
 });
 
+function matchLabel(matchId) {
+  const m = fixtures.peekMatch(matchId);
+  return m ? `${m.home.name} vs ${m.away.name}` : `#${matchId}`;
+}
+
+app.get('/api/admin/comments', requireAdmin, (req, res) => {
+  const n = parseInt(req.query.limit, 10);
+  const limit = Number.isFinite(n) ? Math.min(200, Math.max(1, n)) : 50;
+  const comments = db.listRecentComments(limit).map((c) => ({
+    id: c.id, matchId: c.matchId, name: c.name, body: c.body, createdAt: c.createdAt, matchLabel: matchLabel(c.matchId),
+  }));
+  res.json({ comments });
+});
+
+app.delete('/api/admin/comment/:id', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  if (!/^\d{1,15}$/.test(id)) return res.status(400).json({ error: 'invalid_comment_id' });
+  res.json({ ok: true, deleted: db.deleteComment(Number(id)) });
+});
+
 app.use('/api', (req, res) => res.status(404).json({ error: 'not_found' }));
 
 // ----- Pages & static ------------------------------------------------------
@@ -509,7 +529,7 @@ app.use('/js', express.static(path.join(PUBLIC_DIR, 'js'), { maxAge: '10m' }));
 
 function notFoundPage() {
   return `<!doctype html><html lang="km"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>404 · ${SITE_NAME}</title><link rel="stylesheet" href="/css/app.css"></head>
+<title>404 · ${SITE_NAME}</title><link rel="stylesheet" href="/css/app.css?v=2"></head>
 <body><main class="container narrow center-page"><p class="big-404">404</p><a class="btn" href="/">ត្រឡប់ក្រោយ</a></main></body></html>`;
 }
 

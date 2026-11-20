@@ -64,6 +64,10 @@ function openDb(dataDir) {
       'INSERT INTO comments (match_id, name, body, created_at, ip_hash) VALUES (?, ?, ?, ?, ?)'
     ),
     commentMatchExists: db.prepare('SELECT 1 FROM comments WHERE match_id = ? LIMIT 1'),
+    commentsRecent: db.prepare(
+      'SELECT id, match_id, name, body, created_at FROM comments ORDER BY id DESC LIMIT ?'
+    ),
+    commentDelete: db.prepare('DELETE FROM comments WHERE id = ?'),
 
     streamsAll: db.prepare('SELECT match_id, url, kind, updated_at FROM streams'),
     streamGet: db.prepare('SELECT match_id, url, kind, updated_at FROM streams WHERE match_id = ?'),
@@ -118,6 +122,13 @@ function openDb(dataDir) {
       const createdAt = new Date().toISOString();
       const info = st.commentInsert.run(matchId, name, body, createdAt, ipHash);
       return { id: Number(info.lastInsertRowid), name, body, createdAt };
+    },
+    /** Newest first, across all matches (admin moderation). */
+    listRecentComments(limit = 50) {
+      return st.commentsRecent.all(limit).map((r) => ({ ...toComment(r), matchId: r.match_id }));
+    },
+    deleteComment(id) {
+      return st.commentDelete.run(id).changes;
     },
 
     allStreams() {
